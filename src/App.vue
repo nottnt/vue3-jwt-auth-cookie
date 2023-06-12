@@ -1,23 +1,74 @@
-<script setup lang="ts">
+<script lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import { mapGetters, mapActions, mapMutations } from 'vuex'
+
+export default {
+  name: 'App',
+  components: {
+    RouterLink,
+    RouterView
+  },
+  computed: {
+    ...mapGetters('auth', {
+      getUserProfile: 'getUserProfile',
+      getLogout: 'getLogout'
+    })
+  },
+  methods: {
+    ...mapActions('auth', {
+      userLogout: 'userLogout'
+    }),
+    ...mapMutations('auth', {
+      setLogout: 'setLogout',
+      setUserProfile: 'setUserProfile'
+    }),
+    async logout() {
+      await this.userLogout()
+      if (this.getLogout) {
+        const resetUser = {
+          id: 0,
+          lastName: '',
+          firstName: '',
+          email: '',
+          phone: ''
+        }
+        this.setUserProfile(resetUser)
+        this.setLogout(false)
+        this.$router.push('/login')
+      }
+    }
+  }
+}
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
-
-  <RouterView />
+  <div>
+    <nav class="navbar navbar-expand-lg navbar-light bg-primary bg-gradient">
+      <div class="container-fluid">
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0" v-if="getUserProfile.id == 0">
+            <li class="nav-item">
+              <router-link to="/login" class="nav-link">Login</router-link>
+            </li>
+          </ul>
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0" v-if="getUserProfile.id !== 0">
+            <li>
+              <h5>
+                <span class="badge bg-primary">{{ getUserProfile.email }}</span>
+              </h5>
+            </li>
+            <li class="nav-item">
+              <router-link to="/dashboard" class="nav-link">Dashboard</router-link>
+            </li>
+            <li>
+              <span @click="logout()">Logout</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <RouterView />
+  </div>
 </template>
 
 <style scoped>
